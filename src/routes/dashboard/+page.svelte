@@ -1,0 +1,137 @@
+<script lang="ts">
+    import { authClient } from '$lib/auth-client';
+    import { Button } from '$lib/components/ui/button';
+    import { OrganizationSchema } from '$lib/validation';
+    import * as v from 'valibot';
+
+    let { data } = $props();
+    
+    // Using $state for local reactive state (Svelte 5)
+    let session = $derived(data.session);
+    let activeOrg = $state(data.session?.session?.activeOrganizationId);
+    
+    let newOrgName = $state('');
+    let newOrgSlug = $state('');
+    let orgError = $state<string | null>(null);
+
+    // Fetch organizations using the client
+    let organizations = $state<any[]>([]);
+    
+    $effect(() => {
+        if (session) {
+            authClient.organization.list().then((res) => {
+                if (res.data) organizations = res.data;
+            });
+        }
+    });
+
+    async function handleCreateOrg() {
+        const input = { name: newOrgName, slug: newOrgSlug };
+        const result = v.safeParse(OrganizationSchema, input);
+        if (!result.success) {
+            orgError = result.issues[0].message;
+            return;
+        }
+
+        const { data: org, error } = await authClient.organization.create({
+            name: newOrgName,
+            slug: newOrgSlug
+        });
+
+        if (error) {
+            orgError = error.message || 'An error occurred';
+            return;
+        }
+
+        if (org) {
+            organizations = [...organizations, org];
+            newOrgName = '';
+            newOrgSlug = '';
+            activeOrg = org.id;
+        }
+    }
+
+    async function setActiveOrg(orgId: string) {
+        await authClient.organization.setActive({
+            organizationId: orgId
+        });
+        activeOrg = orgId;
+        window.location.reload(); // Reload to refresh server-side session context if needed
+    }
+
+    async function handleLogout() {
+        await authClient.signOut({
+            fetchOptions: {
+                onSuccess: () => {
+                    window.location.href = '/auth';
+                }
+            }
+        });
+    }
+</script>
+
+<div class="container mx-auto py-10">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Dashboard</h1>
+        <div class="flex items-center gap-4">
+            <span>{session?.user?.email}</span>
+            <Button variant="outline" onclick={handleLogout}>Logout</Button>
+        </div>
+    </div>
+
+    {#if !session}
+        <div class="p-10 text-center">
+            <p>Please sign in to view this page.</p>
+            <Button href="/auth" class="mt-4">Go to Login</Button>
+        </div>
+    {:else}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-1 space-y-6">
+                <div class="rounded-lg border p-4">
+                    <h3 class="font-semibold mb-4">Organizations</h3>
+                    <div class="space-y-2">
+                        {#each organizations as org}
+                            <div class="flex items-center justify-between p-2 rounded-md {activeOrg === org.id ? 'bg-secondary' : ''}">
+                                <span>{org.name}</span>
+                                {#if activeOrg !== org.id}
+                                    <Button size="sm" variant="ghost" onclick={() => setActiveOrg(org.id)}>Switch</Button>
+                                {:else}
+                                    <span class="text-xs text-muted-foreground">Active</span>
+                                {/if}
+                            </div>
+                        {/each}
+                    </div>
+                </div>
+
+                <div class="rounded-lg border p-4 space-y-4">
+                    <h3 class="font-semibold">Create Organization</h3>
+                    {#if orgError}
+                        <p class="text-destructive text-sm">{orgError}</p>
+                    {/if}
+                    <input 
+                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                        placeholder="Name" 
+                        bind:value={newOrgName}
+                    />
+                    <input 
+                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                        placeholder="Slug" 
+                        bind:value={newOrgSlug}
+                    />
+                    <Button class="w-full" onclick={handleCreateOrg}>Create</Button>
+                </div>
+            </div>
+
+            <div class="md:col-span-2">
+                <div class="rounded-lg border p-8 text-center">
+                    <h2 class="text-2xl font-bold mb-4">Welcome to your dashboard</h2>
+                    {#if activeOrg}
+                        <p class="text-muted-foreground">You are currently managing <strong>{organizations.find(o => o.id === activeOrg)?.name}</strong></p>
+                    {:else}
+                        <p class="text-muted-foreground">Select or create an organization to get started.</p>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    {/if}
+</div>
