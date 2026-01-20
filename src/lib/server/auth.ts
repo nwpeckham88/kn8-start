@@ -1,8 +1,10 @@
+import { getRequestEvent } from "$app/server";
 import { env } from '$env/dynamic/private';
 import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
+import { sveltekitCookies } from "better-auth/svelte-kit";
 import { db } from "./db";
 
 export const auth = betterAuth({
@@ -24,6 +26,7 @@ export const auth = betterAuth({
     },
     plugins: [
         organization(),
-        passkey()
+        passkey(),
+        sveltekitCookies(getRequestEvent)
     ]
 });
