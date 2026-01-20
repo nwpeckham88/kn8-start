@@ -25,7 +25,29 @@ export const auth = betterAuth({
         }
     },
     plugins: [
-        organization(),
+        organization({
+            ac: true,
+            roles: {
+                admin: {
+                    permissions: [
+                        "org:update",
+                        "member:create",
+                        "member:update",
+                        "member:delete",
+                        "invitation:create",
+                        "invitation:cancel"
+                    ]
+                },
+                member: {
+                    permissions: [
+                        "org:read"
+                    ]
+                },
+                owner: {
+                    permissions: ["*"]
+                }
+            }
+        }),
         passkey(),
         sveltekitCookies(getRequestEvent)
     ]

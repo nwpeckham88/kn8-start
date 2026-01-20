@@ -1,60 +1,53 @@
-# KN8 Starter Project
+# SvelteKit v5 + BetterAuth + Neon/Drizzle Starter
 
-This is a comprehensive base project using SvelteKit v5, Neon, Drizzle ORM, Valibot, Tailwind CSS v4, and BetterAuth with Multi-tenant support.
+This project is a modern web application starter kit featuring:
 
-## Tech Stack
-
-- **Framework**: SvelteKit v5 (Runes mode)
-- **Database**: Neon (PostgreSQL)
-- **ORM**: Drizzle ORM
-- **Authentication**: BetterAuth (with Organization & Passkey plugins)
+- **Framework**: SvelteKit v5 (Runes)
+- **Authentication**: BetterAuth with Organization (Multi-tenant) and Passkey support
+- **Database**: Neon (Serverless Postgres) with Drizzle ORM
+- **Styling**: Tailwind CSS v4
 - **Validation**: Valibot
-- **UI**: Tailwind CSS v4, Bits UI
-- **Testing**: Vitest
-
-## Setup
-
-1.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-
-2.  **Environment Variables**:
-    Copy `.env.example` to `.env` and fill in your credentials.
-    ```bash
-    cp .env.example .env
-    ```
-    Required variables:
-    - `DATABASE_URL`: Your Neon connection string.
-    - `BETTER_AUTH_SECRET`: Generate one using `openssl rand -base64 32`.
-    - `BETTER_AUTH_URL`: Your app URL (default `http://localhost:5173`).
-    - `GITHUB_CLIENT_ID` / `SECRET`: For GitHub Login.
-    - `GOOGLE_CLIENT_ID` / `SECRET`: For Google Login.
-
-3.  **Database Migration**:
-    Push the schema to your Neon database.
-    ```bash
-    npx drizzle-kit push
-    ```
-
-4.  **Run Development Server**:
-    ```bash
-    npm run dev
-    ```
-
-5.  **Run Tests**:
-    ```bash
-    npm run test
-    ```
+- **Language**: TypeScript
 
 ## Features
 
-- **Multi-tenancy**: Built-in Organization support via BetterAuth. Users can create and switch between organizations.
-- **Authentication**: Email/Password, Social Login (GitHub, Google), and Passkeys.
-- **Type-safe Validation**: Valibot schemas for all inputs.
-- **Modern UI**: Tailwind v4 with CSS variables and Bits UI primitives.
-- **Logging**: Structured logging with Pino.
+- **Multi-Tenancy**: Create and manage organizations.
+- **RBAC**: Role-Based Access Control (Owner, Admin, Member).
+- **Member Management**: Invite users, update roles, remove members.
+- **Secure Sessions**: Server-side session enforcement with `sveltekitCookies`.
+- **Environment Variables**: Type-safe environment variables via `$env`.
 
-## Documentation
+## Setup
 
-Check the `documentation/` folder for detailed guides on each technology.
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Environment Variables**:
+   Create a `.env` file with the following:
+   ```env
+   DATABASE_URL=postgres://...
+   BETTER_AUTH_SECRET=...
+   BETTER_AUTH_URL=http://localhost:5173
+   GITHUB_CLIENT_ID=...
+   GITHUB_CLIENT_SECRET=...
+   GOOGLE_CLIENT_ID=...
+   GOOGLE_CLIENT_SECRET=...
+   ```
+
+3. **Database Migration**:
+   ```bash
+   npx drizzle-kit push
+   ```
+
+4. **Run Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+## Architecture
+
+- `src/lib/server/auth.ts`: BetterAuth configuration.
+- `src/lib/server/db`: Drizzle schema and connection.
+- `src/routes/dashboard`: Protected dashboard with organization context.
