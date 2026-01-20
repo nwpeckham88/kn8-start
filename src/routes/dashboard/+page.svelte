@@ -3,6 +3,7 @@
     import { Button } from '$lib/components/ui/button';
     import { OrganizationSchema } from '$lib/validation';
     import * as v from 'valibot';
+	import Members from './Members.svelte';
 
     let { data } = $props();
     
@@ -123,12 +124,21 @@
             </div>
 
             <div class="md:col-span-2">
-                <div class="rounded-lg border p-8 text-center">
-                    <h2 class="text-2xl font-bold mb-4">Welcome to your dashboard</h2>
+                <div class="rounded-lg border p-8">
                     {#if activeOrg}
-                        <p class="text-muted-foreground">You are currently managing <strong>{organizations.find(o => o.id === activeOrg)?.name}</strong></p>
+                        <div class="mb-8 text-center">
+                            <h2 class="text-2xl font-bold mb-2">
+                                {organizations.find(o => o.id === activeOrg)?.name}
+                            </h2>
+                            <p class="text-muted-foreground">Organization Dashboard</p>
+                        </div>
+                        
+                        <Members activeOrgId={activeOrg} />
                     {:else}
-                        <p class="text-muted-foreground">Select or create an organization to get started.</p>
+                        <div class="text-center">
+                            <h2 class="text-2xl font-bold mb-4">Welcome to your dashboard</h2>
+                            <p class="text-muted-foreground">Select or create an organization to get started.</p>
+                        </div>
                     {/if}
                 </div>
             </div>

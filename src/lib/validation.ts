@@ -16,6 +16,12 @@ export const OrganizationSchema = v.object({
 	slug: v.pipe(v.string(), v.minLength(2))
 });
 
+export const InviteMemberSchema = v.object({
+    email: v.pipe(v.string(), v.email()),
+    role: v.picklist(['admin', 'member', 'owner'])
+});
+
 export type LoginInput = v.InferInput<typeof LoginSchema>;
 export type RegisterInput = v.InferInput<typeof RegisterSchema>;
 export type OrganizationInput = v.InferInput<typeof OrganizationSchema>;
+export type InviteMemberInput = v.InferInput<typeof InviteMemberSchema>;
