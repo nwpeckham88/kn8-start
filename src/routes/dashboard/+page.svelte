@@ -11,7 +11,7 @@
     
     // Using $state for local reactive state (Svelte 5)
     let session = $derived(data.session);
-    let activeOrg = $state(data.session?.session?.activeOrganizationId);
+    let activeOrg = $state(data.session?.activeOrganizationId);
     
     let newOrgName = $state('');
     let newOrgSlug = $state('');
@@ -77,7 +77,7 @@
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Dashboard</h1>
         <div class="flex items-center gap-4">
-            <span>{session?.user?.email}</span>
+            <span>{data.user?.email}</span>
             <Button variant="outline" onclick={handleLogout}>Logout</Button>
         </div>
     </div>

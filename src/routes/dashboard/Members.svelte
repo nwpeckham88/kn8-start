@@ -26,14 +26,18 @@
 
     async function fetchMembers() {
         const { data } = await authClient.organization.listMembers({
-            organizationId: activeOrgId
+            query: {
+                organizationId: activeOrgId
+            }
         });
         if (data) members = data;
     }
 
     async function fetchInvitations() {
         const { data } = await authClient.organization.listInvitations({
-            organizationId: activeOrgId
+            query: {
+                organizationId: activeOrgId
+            }
         });
         if (data) invitations = data;
     }
@@ -79,7 +83,7 @@
         });
 
         if (apiError) {
-            error = apiError.message;
+            error = apiError.message || 'An error occurred';
             return;
         }
         
@@ -94,7 +98,7 @@
         });
 
         if (apiError) {
-            error = apiError.message;
+            error = apiError.message || 'An error occurred';
             return;
         }
 

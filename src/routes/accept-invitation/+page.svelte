@@ -21,7 +21,7 @@
 
         if (apiError) {
             status = 'error';
-            error = apiError.message;
+            error = apiError.message || 'An error occurred';
         } else {
             status = 'success';
             setTimeout(() => {
