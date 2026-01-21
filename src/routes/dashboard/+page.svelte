@@ -1,9 +1,11 @@
 <script lang="ts">
     import { authClient } from '$lib/auth-client';
     import { Button } from '$lib/components/ui/button';
+    import * as Card from '$lib/components/ui/card';
+    import { Input } from '$lib/components/ui/input';
     import { OrganizationSchema } from '$lib/validation';
     import * as v from 'valibot';
-	import Members from './Members.svelte';
+    import Members from './Members.svelte';
 
     let { data } = $props();
     
@@ -88,59 +90,67 @@
     {:else}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div class="md:col-span-1 space-y-6">
-                <div class="rounded-lg border p-4">
-                    <h3 class="font-semibold mb-4">Organizations</h3>
-                    <div class="space-y-2">
-                        {#each organizations as org}
-                            <div class="flex items-center justify-between p-2 rounded-md {activeOrg === org.id ? 'bg-secondary' : ''}">
-                                <span>{org.name}</span>
-                                {#if activeOrg !== org.id}
-                                    <Button size="sm" variant="ghost" onclick={() => setActiveOrg(org.id)}>Switch</Button>
-                                {:else}
-                                    <span class="text-xs text-muted-foreground">Active</span>
-                                {/if}
-                            </div>
-                        {/each}
-                    </div>
-                </div>
+                <Card.Root>
+                    <Card.Header>
+                        <Card.Title>Organizations</Card.Title>
+                    </Card.Header>
+                    <Card.Content>
+                        <div class="space-y-2">
+                            {#each organizations as org}
+                                <div class="flex items-center justify-between p-2 rounded-md {activeOrg === org.id ? 'bg-secondary' : ''}">
+                                    <span>{org.name}</span>
+                                    {#if activeOrg !== org.id}
+                                        <Button size="sm" variant="ghost" onclick={() => setActiveOrg(org.id)}>Switch</Button>
+                                    {:else}
+                                        <span class="text-xs text-muted-foreground">Active</span>
+                                    {/if}
+                                </div>
+                            {/each}
+                        </div>
+                    </Card.Content>
+                </Card.Root>
 
-                <div class="rounded-lg border p-4 space-y-4">
-                    <h3 class="font-semibold">Create Organization</h3>
-                    {#if orgError}
-                        <p class="text-destructive text-sm">{orgError}</p>
-                    {/if}
-                    <input 
-                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
-                        placeholder="Name" 
-                        bind:value={newOrgName}
-                    />
-                    <input 
-                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
-                        placeholder="Slug" 
-                        bind:value={newOrgSlug}
-                    />
-                    <Button class="w-full" onclick={handleCreateOrg}>Create</Button>
-                </div>
+                <Card.Root>
+                    <Card.Header>
+                        <Card.Title>Create Organization</Card.Title>
+                    </Card.Header>
+                    <Card.Content class="space-y-4">
+                        {#if orgError}
+                            <p class="text-destructive text-sm">{orgError}</p>
+                        {/if}
+                        <Input 
+                            placeholder="Name" 
+                            bind:value={newOrgName}
+                        />
+                        <Input 
+                            placeholder="Slug" 
+                            bind:value={newOrgSlug}
+                        />
+                        <Button class="w-full" onclick={handleCreateOrg}>Create</Button>
+                    </Card.Content>
+                </Card.Root>
             </div>
 
             <div class="md:col-span-2">
-                <div class="rounded-lg border p-8">
-                    {#if activeOrg}
-                        <div class="mb-8 text-center">
-                            <h2 class="text-2xl font-bold mb-2">
-                                {organizations.find(o => o.id === activeOrg)?.name}
-                            </h2>
-                            <p class="text-muted-foreground">Organization Dashboard</p>
-                        </div>
-                        
-                        <Members activeOrgId={activeOrg} />
-                    {:else}
-                        <div class="text-center">
-                            <h2 class="text-2xl font-bold mb-4">Welcome to your dashboard</h2>
-                            <p class="text-muted-foreground">Select or create an organization to get started.</p>
-                        </div>
-                    {/if}
-                </div>
+                <Card.Root>
+                    <Card.Content class="p-8">
+                        {#if activeOrg}
+                            <div class="mb-8 text-center">
+                                <h2 class="text-2xl font-bold mb-2">
+                                    {organizations.find(o => o.id === activeOrg)?.name}
+                                </h2>
+                                <p class="text-muted-foreground">Organization Dashboard</p>
+                            </div>
+                            
+                            <Members activeOrgId={activeOrg} />
+                        {:else}
+                            <div class="text-center">
+                                <h2 class="text-2xl font-bold mb-4">Welcome to your dashboard</h2>
+                                <p class="text-muted-foreground">Select or create an organization to get started.</p>
+                            </div>
+                        {/if}
+                    </Card.Content>
+                </Card.Root>
             </div>
         </div>
     {/if}
