@@ -7,7 +7,7 @@
     import { InviteMemberSchema } from '$lib/validation';
     import * as v from 'valibot';
 
-    let { activeOrgId } = $props();
+    let { activeOrgId }: { activeOrgId: string } = $props();
 
     let members = $state<any[]>([]);
     let invitations = $state<any[]>([]);
@@ -15,6 +15,7 @@
     let inviteRole = $state<string>('member');
     let error = $state<string | null>(null);
     let success = $state<string | null>(null);
+    let loading = $state(false);
 
     $effect(() => {
         if (activeOrgId) {
@@ -40,12 +41,14 @@
     async function handleInvite() {
         error = null;
         success = null;
+        loading = true;
 
         const input = { email: inviteEmail, role: inviteRole };
         const result = v.safeParse(InviteMemberSchema, input);
         
         if (!result.success) {
             error = result.issues[0].message;
+            loading = false;
             return;
         }
 
@@ -57,11 +60,13 @@
 
         if (apiError) {
             error = apiError.message;
+            loading = false;
             return;
         }
 
         success = 'Invitation sent successfully';
         inviteEmail = '';
+        loading = false;
         fetchInvitations();
     }
 
@@ -142,7 +147,9 @@
                         <Select.Item value="owner">Owner</Select.Item>
                     </Select.Content>
                 </Select.Root>
-                <Button onclick={handleInvite}>Invite</Button>
+                <Button onclick={handleInvite} disabled={loading}>
+                    {loading ? 'Inviting...' : 'Invite'}
+                </Button>
             </div>
         </Card.Content>
     </Card.Root>
