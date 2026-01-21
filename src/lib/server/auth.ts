@@ -4,8 +4,15 @@ import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
+import { createAccessControl } from "better-auth/plugins/access";
 import { sveltekitCookies } from "better-auth/svelte-kit";
 import { db } from "./db";
+
+const accessControl = createAccessControl({
+    organization: ["read", "update", "delete"],
+    member: ["create", "update", "delete"],
+    invitation: ["create", "cancel"]
+});
 
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
@@ -26,28 +33,21 @@ export const auth = betterAuth({
     },
     plugins: [
         organization({
-            ac: {
-                enabled: true,
-            },
+            ac: accessControl,
             roles: {
-                admin: {
-                    permissions: [
-                        "org:update",
-                        "member:create",
-                        "member:update",
-                        "member:delete",
-                        "invitation:create",
-                        "invitation:cancel"
-                    ]
-                },
-                member: {
-                    permissions: [
-                        "org:read"
-                    ]
-                },
-                owner: {
-                    permissions: ["*"]
-                }
+                admin: accessControl.newRole({
+                    organization: ["read", "update"],
+                    member: ["create", "update", "delete"],
+                    invitation: ["create", "cancel"]
+                }),
+                member: accessControl.newRole({
+                    organization: ["read"]
+                }),
+                owner: accessControl.newRole({
+                    organization: ["read", "update", "delete"],
+                    member: ["create", "update", "delete"],
+                    invitation: ["create", "cancel"]
+                })
             }
         }),
         passkey(),

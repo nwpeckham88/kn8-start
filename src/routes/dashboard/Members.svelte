@@ -30,7 +30,13 @@
                 organizationId: activeOrgId
             }
         });
-        if (data) members = data;
+		if (data) {
+			if (Array.isArray(data)) {
+				members = data;
+			} else if ("members" in data) {
+				members = data.members ?? [];
+			}
+		}
     }
 
     async function fetchInvitations() {
@@ -39,7 +45,12 @@
                 organizationId: activeOrgId
             }
         });
-        if (data) invitations = data;
+		if (data) {
+			const invitationsList = Array.isArray(data)
+				? data
+				: (data as { invitations?: any[] } | null)?.invitations ?? [];
+			invitations = invitationsList;
+		}
     }
 
     async function handleInvite() {
@@ -63,7 +74,7 @@
         });
 
         if (apiError) {
-            error = apiError.message;
+			error = apiError.message ?? 'An error occurred';
             loading = false;
             return;
         }
@@ -107,12 +118,11 @@
 
     async function handleRevokeInvitation(invitationId: string) {
         const { error: apiError } = await authClient.organization.cancelInvitation({
-            invitationId,
-            organizationId: activeOrgId
+			invitationId
         });
 
         if (apiError) {
-            error = apiError.message;
+			error = apiError.message ?? 'An error occurred';
             return;
         }
 
@@ -143,7 +153,7 @@
                 />
                 <Select.Root type="single" bind:value={inviteRole}>
                     <Select.Trigger class="w-[120px]">
-                        <Select.Value placeholder="Select role" />
+                        {inviteRole || "Select role"}
                     </Select.Trigger>
                     <Select.Content>
                         <Select.Item value="member">Member</Select.Item>
@@ -173,7 +183,7 @@
                         <div class="flex items-center gap-2">
                             <Select.Root type="single" value={member.role} onValueChange={(v) => handleUpdateRole(member.id, v)}>
                                 <Select.Trigger class="h-8 w-[100px]">
-                                    <Select.Value placeholder={member.role} />
+                                    {member.role}
                                 </Select.Trigger>
                                 <Select.Content>
                                     <Select.Item value="member">Member</Select.Item>

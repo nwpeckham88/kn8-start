@@ -9,9 +9,14 @@
 
     let { data } = $props();
     
-    // Using $state for local reactive state (Svelte 5)
-    let session = $derived(data.session);
-    let activeOrg = $state(data.session?.activeOrganizationId);
+	// Using $state for local reactive state (Svelte 5)
+	let session = $state<typeof data.session | null>(null);
+	let activeOrg = $state<string | null>(null);
+
+	$effect(() => {
+		session = data.session;
+		activeOrg = data.session?.activeOrganizationId ?? null;
+	});
     
     let newOrgName = $state('');
     let newOrgSlug = $state('');

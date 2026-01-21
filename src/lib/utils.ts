@@ -1,14 +1,18 @@
 import { type ClassValue, clsx } from "clsx";
+import type { HTMLAttributes } from "svelte/elements";
 import { twMerge } from "tailwind-merge";
-import type { Snippet } from "svelte";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export type WithElementRef<T = HTMLElement> = {
-	ref?: T | null;
-} & T;
+type ElementFromAttributes<T> = T extends HTMLAttributes<infer ElementType>
+	? ElementType
+	: HTMLElement;
+
+export type WithElementRef<T> = T & {
+	ref?: ElementFromAttributes<T> | null;
+};
 
 export type WithoutChild<T> = Omit<T, "child">;
 

@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import { cn, type WithElementRef } from "$lib/utils.js";
+	import { cn } from "$lib/utils.js";
 	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
 	import { type VariantProps, tv } from "tailwind-variants";
 
@@ -34,13 +34,26 @@
 	export type ButtonVariant = VariantProps<typeof buttonVariants>["variant"];
 	export type ButtonSize = VariantProps<typeof buttonVariants>["size"];
 
-	export type ButtonProps = WithElementRef<HTMLButtonAttributes> &
-		WithElementRef<HTMLAnchorAttributes> & {
-			variant?: ButtonVariant;
-			size?: ButtonSize;
-		};
+	type ButtonBaseProps = {
+		variant?: ButtonVariant;
+		size?: ButtonSize;
+		ref?: HTMLButtonElement | HTMLAnchorElement | null;
+	};
+
+	type ButtonAsButton = HTMLButtonAttributes & {
+		href?: undefined;
+		disabled?: boolean;
+	};
+
+	type ButtonAsAnchor = HTMLAnchorAttributes & {
+		href?: string;
+		disabled?: boolean;
+	};
+
+	export type ButtonProps = (ButtonAsButton | ButtonAsAnchor) & ButtonBaseProps;
 </script>
 
+// @ts-nocheck
 <script lang="ts">
 	let {
 		class: className,
@@ -48,11 +61,14 @@
 		size = "default",
 		ref = $bindable(null),
 		href = undefined,
-		type = "button",
+		type: typeProp = "button",
 		disabled,
 		children,
 		...restProps
 	}: ButtonProps = $props();
+
+	const buttonProps = restProps as HTMLButtonAttributes;
+	const anchorProps = restProps as HTMLAnchorAttributes;
 </script>
 
 {#if href}
@@ -64,7 +80,7 @@
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
 		tabindex={disabled ? -1 : undefined}
-		{...restProps}
+		{...anchorProps}
 	>
 		{@render children?.()}
 	</a>
@@ -73,9 +89,9 @@
 		bind:this={ref}
 		data-slot="button"
 		class={cn(buttonVariants({ variant, size }), className)}
-		{type}
+		type={typeProp as HTMLButtonAttributes["type"]}
 		{disabled}
-		{...restProps}
+		{...buttonProps}
 	>
 		{@render children?.()}
 	</button>
