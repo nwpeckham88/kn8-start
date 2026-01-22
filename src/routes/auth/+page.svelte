@@ -90,12 +90,16 @@
 <div class="relative min-h-screen w-full overflow-hidden selection:bg-primary/20">
     <GeometricBackground />
 
-    <div class="container relative z-10 mx-auto flex min-h-screen items-center py-12">
+    <div class="container relative z-10 mx-auto flex min-h-screen items-center justify-center py-12">
         <div class="absolute right-4 top-4 z-50 md:right-8 md:top-8">
             <ModeToggle />
         </div>
-        <div class="grid w-full max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-            <div class="flex flex-col justify-between rounded-3xl border bg-card/70 p-10 shadow-xl backdrop-blur text-card-foreground">
+        <!-- 
+            Adjusted grid to be equal width columns (grid-cols-2) and increased max-width/gap to reveal the center cross.
+            Using mx-auto on the grid ensures the gap is perfectly centered on the page.
+        -->
+        <div class="grid w-full max-w-7xl grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-32">
+            <div class="flex flex-col justify-between rounded-3xl border bg-card/70 p-10 shadow-xl backdrop-blur text-card-foreground h-full">
                 <div class="space-y-6">
                     <div class="inline-flex w-fit items-center rounded-full border bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground transition-all hover:bg-background/90 hover:scale-105">
                         Secure access
@@ -138,7 +142,7 @@
                 </div>
             </div>
 
-            <Card.Root class="w-full rounded-3xl border bg-card/90 shadow-xl backdrop-blur text-card-foreground">
+            <Card.Root class="w-full h-full flex flex-col justify-center rounded-3xl border bg-card/90 shadow-xl backdrop-blur text-card-foreground">
                 <Card.Header class="space-y-2">
                     <Card.Title class="text-3xl font-semibold tracking-tight text-foreground">
                         {isRegister ? 'Create an account' : 'Sign in'}
