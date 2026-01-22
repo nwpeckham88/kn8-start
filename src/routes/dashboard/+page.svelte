@@ -1,162 +1,96 @@
 <script lang="ts">
-    import { authClient } from '$lib/auth-client';
-    import { Button } from '$lib/components/ui/button';
-    import * as Card from '$lib/components/ui/card';
-    import { Input } from '$lib/components/ui/input';
-    import { OrganizationSchema } from '$lib/validation';
-    import * as v from 'valibot';
-    import Members from './Members.svelte';
+	import ModeToggle from '$lib/components/mode-toggle.svelte';
+	import { Button } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
 
-    let { data } = $props();
-    
-	// Using $state for local reactive state (Svelte 5)
+	let { data } = $props();
+
 	let session = $state<typeof data.session | null>(null);
-	let activeOrg = $state<string | null>(null);
+	let user = $state<typeof data.user | null>(null);
 
 	$effect(() => {
 		session = data.session;
-		activeOrg = data.session?.activeOrganizationId ?? null;
+		user = data.user;
 	});
-    
-    let newOrgName = $state('');
-    let newOrgSlug = $state('');
-    let orgError = $state<string | null>(null);
 
-    // Fetch organizations using the client
-    let organizations = $state<any[]>([]);
-    
-    $effect(() => {
-        if (session) {
-            authClient.organization.list().then((res) => {
-                if (res.data) organizations = res.data;
-            });
-        }
-    });
+	async function handleLogout() {
+        // MOCK LOGOUT
+        document.cookie = "mock_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+        window.location.href = '/auth';
+        return;
 
-    async function handleCreateOrg() {
-        const input = { name: newOrgName, slug: newOrgSlug };
-        const result = v.safeParse(OrganizationSchema, input);
-        if (!result.success) {
-            orgError = result.issues[0].message;
-            return;
-        }
-
-        const { data: org, error } = await authClient.organization.create({
-            name: newOrgName,
-            slug: newOrgSlug
-        });
-
-        if (error) {
-            orgError = error.message || 'An error occurred';
-            return;
-        }
-
-        if (org) {
-            organizations = [...organizations, org];
-            newOrgName = '';
-            newOrgSlug = '';
-            activeOrg = org.id;
-        }
-    }
-
-    async function setActiveOrg(orgId: string) {
-        await authClient.organization.setActive({
-            organizationId: orgId
-        });
-        activeOrg = orgId;
-        window.location.reload(); // Reload to refresh server-side session context if needed
-    }
-
-    async function handleLogout() {
-        await authClient.signOut({
-            fetchOptions: {
-                onSuccess: () => {
-                    window.location.href = '/auth';
-                }
-            }
-        });
-    }
+        /*
+		await authClient.signOut({
+			fetchOptions: {
+				onSuccess: () => {
+					window.location.href = '/auth';
+				}
+			}
+		});
+        */
+	}
 </script>
 
-<div class="container mx-auto py-10">
-    <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold">Dashboard</h1>
-        <div class="flex items-center gap-4">
-            <span>{data.user?.email}</span>
-            <Button variant="outline" onclick={handleLogout}>Logout</Button>
+<div class="container mx-auto py-12">
+	<div class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+		<div>
+			<h1 class="text-3xl font-semibold tracking-tight">Dashboard</h1>
+			<p class="text-muted-foreground">Your secure workspace overview.</p>
+		</div>
+        <div class="flex items-center gap-2">
+            <ModeToggle />
+		    <Button variant="outline" onclick={handleLogout}>Logout</Button>
         </div>
-    </div>
+	</div>
 
-    {#if !session}
-        <div class="p-10 text-center">
-            <p>Please sign in to view this page.</p>
-            <Button href="/auth" class="mt-4">Go to Login</Button>
-        </div>
-    {:else}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="md:col-span-1 space-y-6">
-                <Card.Root>
-                    <Card.Header>
-                        <Card.Title>Organizations</Card.Title>
-                    </Card.Header>
-                    <Card.Content>
-                        <div class="space-y-2">
-                            {#each organizations as org}
-                                <div class="flex items-center justify-between p-2 rounded-md {activeOrg === org.id ? 'bg-secondary' : ''}">
-                                    <span>{org.name}</span>
-                                    {#if activeOrg !== org.id}
-                                        <Button size="sm" variant="ghost" onclick={() => setActiveOrg(org.id)}>Switch</Button>
-                                    {:else}
-                                        <span class="text-xs text-muted-foreground">Active</span>
-                                    {/if}
-                                </div>
-                            {/each}
-                        </div>
-                    </Card.Content>
-                </Card.Root>
+	{#if !session}
+		<div class="rounded-2xl border bg-card p-10 text-center text-card-foreground">
+			<p class="text-muted-foreground">Please sign in to view this page.</p>
+			<Button href="/auth" class="mt-4">Go to Login</Button>
+		</div>
+	{:else}
+		<div class="grid gap-6 md:grid-cols-2">
+			<Card.Root class="rounded-2xl bg-card text-card-foreground">
+				<Card.Header>
+					<Card.Title>Account</Card.Title>
+				</Card.Header>
+				<Card.Content class="space-y-3">
+					<div class="text-sm text-muted-foreground">Signed in as</div>
+					<div class="text-lg font-medium text-foreground">{user?.name || 'User'}</div>
+					<div class="text-sm text-muted-foreground">{user?.email}</div>
+				</Card.Content>
+			</Card.Root>
 
-                <Card.Root>
-                    <Card.Header>
-                        <Card.Title>Create Organization</Card.Title>
-                    </Card.Header>
-                    <Card.Content class="space-y-4">
-                        {#if orgError}
-                            <p class="text-destructive text-sm">{orgError}</p>
-                        {/if}
-                        <Input 
-                            placeholder="Name" 
-                            bind:value={newOrgName}
-                        />
-                        <Input 
-                            placeholder="Slug" 
-                            bind:value={newOrgSlug}
-                        />
-                        <Button class="w-full" onclick={handleCreateOrg}>Create</Button>
-                    </Card.Content>
-                </Card.Root>
-            </div>
+			<Card.Root class="rounded-2xl bg-card text-card-foreground">
+				<Card.Header>
+					<Card.Title>Session</Card.Title>
+				</Card.Header>
+				<Card.Content class="space-y-3">
+					<div class="flex items-center justify-between text-sm">
+						<span class="text-muted-foreground">Session ID</span>
+						<span class="font-medium text-foreground">{session?.id?.slice(0, 8)}...</span>
+					</div>
+					<div class="flex items-center justify-between text-sm">
+						<span class="text-muted-foreground">Active org</span>
+						<span class="font-medium text-foreground">{session?.activeOrganizationId || 'Not set'}</span>
+					</div>
+				</Card.Content>
+			</Card.Root>
 
-            <div class="md:col-span-2">
-                <Card.Root>
-                    <Card.Content class="p-8">
-                        {#if activeOrg}
-                            <div class="mb-8 text-center">
-                                <h2 class="text-2xl font-bold mb-2">
-                                    {organizations.find(o => o.id === activeOrg)?.name}
-                                </h2>
-                                <p class="text-muted-foreground">Organization Dashboard</p>
-                            </div>
-                            
-                            <Members activeOrgId={activeOrg} />
-                        {:else}
-                            <div class="text-center">
-                                <h2 class="text-2xl font-bold mb-4">Welcome to your dashboard</h2>
-                                <p class="text-muted-foreground">Select or create an organization to get started.</p>
-                            </div>
-                        {/if}
-                    </Card.Content>
-                </Card.Root>
-            </div>
-        </div>
-    {/if}
+			<Card.Root class="rounded-2xl bg-card text-card-foreground md:col-span-2">
+				<Card.Header>
+					<Card.Title>Quick actions</Card.Title>
+				</Card.Header>
+				<Card.Content class="flex flex-col gap-3 sm:flex-row">
+					<Button class="w-full sm:w-auto" href="/auth">Manage sign-in</Button>
+					<Button class="w-full sm:w-auto" variant="outline" href="/auth/forgot">
+						Reset password
+					</Button>
+					<Button class="w-full sm:w-auto" variant="outline" href="/auth/otp">
+						Use OTP
+					</Button>
+				</Card.Content>
+			</Card.Root>
+		</div>
+	{/if}
 </div>

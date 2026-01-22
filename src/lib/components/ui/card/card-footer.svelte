@@ -1,4 +1,3 @@
-// @ts-nocheck
 <script lang="ts">
 	import { cn, type WithElementRef } from "$lib/utils.js";
 	import type { HTMLAttributes } from "svelte/elements";

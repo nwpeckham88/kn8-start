@@ -1,0 +1,41 @@
+<script lang="ts">
+	import { Button } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import GeometricBackground from '$lib/components/GeometricBackground.svelte';
+</script>
+
+<div class="relative min-h-screen selection:bg-primary/20">
+	<GeometricBackground />
+
+	<div class="container relative z-10 mx-auto flex min-h-screen items-center py-12">
+		<Card.Root class="mx-auto w-full max-w-lg rounded-3xl border bg-card/90 shadow-xl backdrop-blur">
+			<Card.Header class="space-y-2">
+				<Card.Title class="text-3xl font-semibold tracking-tight">Enter your one-time code</Card.Title>
+				<Card.Description class="text-base">
+					Check your email or authenticator app for the verification code.
+				</Card.Description>
+			</Card.Header>
+			<Card.Content class="space-y-6">
+				<div class="space-y-2">
+					<Label for="otp">Verification code</Label>
+					<Input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" />
+				</div>
+
+				<Button class="h-11 w-full rounded-xl text-base" href="/auth/reset">
+					Verify code
+				</Button>
+
+				<div class="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+					<a class="font-medium text-foreground transition hover:text-primary" href="/auth/verify">
+						Resend code
+					</a>
+					<a class="font-medium text-foreground transition hover:text-primary" href="/auth">
+						Back to sign in
+					</a>
+				</div>
+			</Card.Content>
+		</Card.Root>
+	</div>
+</div>

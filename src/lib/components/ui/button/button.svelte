@@ -53,7 +53,6 @@
 	export type ButtonProps = (ButtonAsButton | ButtonAsAnchor) & ButtonBaseProps;
 </script>
 
-// @ts-nocheck
 <script lang="ts">
 	let {
 		class: className,
