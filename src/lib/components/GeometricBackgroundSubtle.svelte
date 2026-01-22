@@ -1,33 +1,26 @@
 <script lang="ts">
 </script>
 
-<div class="fixed inset-0 -z-50 h-full w-full overflow-hidden bg-[#faf9f6] dark:bg-background">
-    <!-- Subtle Gradient for Depth (Light Mode Only) -->
-    <div class="absolute inset-0 bg-gradient-to-br from-transparent to-neutral-200/50 dark:hidden"></div>
+<div class="fixed inset-0 -z-50 h-full w-full overflow-hidden bg-[#FDFCF8] dark:bg-[#0C0C14]">
+    <!-- Ethereal Light Gradient (Subtle) -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 h-[60vh] w-[100vw] bg-[radial-gradient(ellipse_at_top,rgba(255,220,180,0.08),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(100,120,180,0.08),transparent_70%)] pointer-events-none"></div>
 
-    <!-- Noise Texture Overlay for analog feel -->
-    <div class="absolute inset-0 opacity-[0.02] pointer-events-none z-[1]" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');"></div>
-
-    <!-- Technical Grid (Subtle) -->
-    <div class="absolute inset-0 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_90%_90%_at_50%_50%,black_30%,transparent_100%)] opacity-50"></div>
-
-    <!-- Kinetic Geometric Elements (Minimal) -->
+    <!-- Static Background Elements (Minimal) -->
     
-    <!-- Element 1: Top Right Semi-Circle (Static Anchor) -->
-    <div class="absolute top-[0%] right-[0%] h-[300px] w-[150px] opacity-[0.03]">
-        <div class="h-full w-full bg-foreground rounded-l-full"></div>
-    </div>
+    <!-- Element 1: Grounded Warmth (Bottom Right) -->
+    <div class="absolute bottom-[-10%] right-[-5%] h-[500px] w-[500px] rounded-full bg-amber-100/40 dark:bg-blue-900/10 blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-60"></div>
 
-    <!-- Element 2: Bottom Left Crosshair -->
-    <div class="absolute bottom-[5%] left-[2%] opacity-15">
-        <div class="relative h-6 w-6">
-            <div class="absolute left-1/2 top-0 h-full w-[1px] -translate-x-1/2 bg-foreground"></div>
-            <div class="absolute left-0 top-1/2 h-[1px] w-full -translate-y-1/2 bg-foreground"></div>
-        </div>
-    </div>
+    <!-- Element 2: Soft Foundation (Bottom Left) -->
+    <div class="absolute bottom-[-20%] left-[10%] h-[600px] w-[600px] rounded-full bg-blue-50/40 dark:bg-indigo-900/5 blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-40"></div>
+
+    <!-- Element 3: The Structure (Subtle Framing Lines) -->
+    <!-- Vertical Line (Right side framing) -->
+    <div class="absolute top-0 right-[15%] h-full w-[1px] bg-gradient-to-b from-transparent via-neutral-400/5 to-transparent dark:via-white/5"></div>
+    <!-- Horizontal Line (Bottom framing) -->
+    <div class="absolute bottom-[20%] left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-neutral-400/5 to-transparent dark:via-white/5"></div>
 
 </div>
 
 <style>
-    /* Static background for minimal distraction in dashboard */
+    /* Minimal static background for dashboard */
 </style>
