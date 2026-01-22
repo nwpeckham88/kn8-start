@@ -32,8 +32,9 @@
 	}
 </script>
 
+<GeometricBackgroundSubtle />
+
 <div class="container mx-auto py-12">
-	<GeometricBackgroundSubtle />
 	<div class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 		<div>
 			<h1 class="text-3xl font-semibold tracking-tight">Dashboard</h1>
