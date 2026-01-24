@@ -4,9 +4,9 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-            user: import("better-auth").User | null;
-            session: (import("better-auth").Session & { activeOrganizationId?: string | null }) | null;
-        }
+			user: import('better-auth').User | null;
+			session: (import('better-auth').Session & { activeOrganizationId?: string | null }) | null;
+		}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}

@@ -2,13 +2,21 @@ import * as v from 'valibot';
 
 export const LoginSchema = v.object({
 	email: v.pipe(v.string(), v.email()),
-	password: v.pipe(v.string(), v.minLength(8))
+	password: v.pipe(v.string(), v.minLength(12), v.maxLength(128))
 });
 
 export const RegisterSchema = v.object({
 	name: v.pipe(v.string(), v.minLength(2)),
 	email: v.pipe(v.string(), v.email()),
-	password: v.pipe(v.string(), v.minLength(8))
+	password: v.pipe(
+		v.string(),
+		v.minLength(12),
+		v.maxLength(128),
+		v.regex(/[A-Z]/, 'Must contain an uppercase letter'),
+		v.regex(/[a-z]/, 'Must contain a lowercase letter'),
+		v.regex(/[0-9]/, 'Must contain a number'),
+		v.regex(/[^A-Za-z0-9]/, 'Must contain a special character')
+	)
 });
 
 export const OrganizationSchema = v.object({
@@ -17,8 +25,8 @@ export const OrganizationSchema = v.object({
 });
 
 export const InviteMemberSchema = v.object({
-    email: v.pipe(v.string(), v.email()),
-    role: v.picklist(['admin', 'member', 'owner'])
+	email: v.pipe(v.string(), v.email()),
+	role: v.picklist(['admin', 'member', 'owner'])
 });
 
 export type LoginInput = v.InferInput<typeof LoginSchema>;

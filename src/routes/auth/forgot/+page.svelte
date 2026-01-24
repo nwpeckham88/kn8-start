@@ -6,11 +6,13 @@
 	import GeometricBackground from '$lib/components/GeometricBackground.svelte';
 </script>
 
-<div class="relative min-h-screen w-full overflow-hidden selection:bg-primary/20">
+<div class="selection:bg-primary/20 relative min-h-screen w-full overflow-hidden">
 	<GeometricBackground />
 
-	<div class="container relative z-10 mx-auto flex min-h-screen items-center py-12">
-		<Card.Root class="mx-auto w-full max-w-lg rounded-3xl border bg-card/90 shadow-xl backdrop-blur">
+	<div class="relative z-10 container mx-auto flex min-h-screen items-center py-12">
+		<Card.Root
+			class="bg-card/90 mx-auto w-full max-w-lg rounded-3xl border shadow-xl backdrop-blur"
+		>
 			<Card.Header class="space-y-2">
 				<Card.Title class="text-3xl font-semibold tracking-tight">Reset your password</Card.Title>
 				<Card.Description class="text-base">
@@ -27,8 +29,8 @@
 					Send reset link
 				</Button>
 
-				<div class="text-center text-sm text-muted-foreground">
-					<a class="font-medium text-foreground transition hover:text-primary" href="/auth">
+				<div class="text-muted-foreground text-center text-sm">
+					<a class="text-foreground hover:text-primary font-medium transition" href="/auth">
 						Back to sign in
 					</a>
 				</div>

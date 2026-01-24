@@ -1,9 +1,11 @@
 # shadcn-svelte & Bits UI Documentation
 
 ## Overview
+
 `shadcn-svelte` is a collection of re-usable components built on top of `bits-ui` (an unstyled, accessible component library for Svelte).
 
 ## Installation
+
 Use the CLI to add components as needed.
 
 ```bash
@@ -12,17 +14,19 @@ npx shadcn-svelte@latest add button
 ```
 
 ## Bits UI
+
 `bits-ui` provides the primitive components that handle accessibility and keyboard navigation.
 
 ```svelte
 <script>
-  import { Button } from "bits-ui";
+	import { Button } from 'bits-ui';
 </script>
 
 <Button.Root class="...">Click me</Button.Root>
 ```
 
 ## Theming
+
 Theming is handled via Tailwind CSS variables in `src/app.css`.
 
 ```css
@@ -41,4 +45,5 @@ Theming is handled via Tailwind CSS variables in `src/app.css`.
 ```
 
 ## Accessibility
+
 All components are built with ARIA attributes and follow WAI-ARIA design patterns.

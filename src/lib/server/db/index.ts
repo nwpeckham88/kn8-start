@@ -9,7 +9,10 @@ const databaseUrl = env.DATABASE_URL;
 const databaseHost = new URL(databaseUrl).hostname;
 const databasePort = new URL(databaseUrl).port || '5432';
 
-if ((databaseHost === 'localhost' || databaseHost === '127.0.0.1' || databaseHost === 'db') && databasePort === '5432') {
+if (
+	(databaseHost === 'localhost' || databaseHost === '127.0.0.1' || databaseHost === 'db') &&
+	databasePort === '5432'
+) {
 	neonConfig.fetchEndpoint = `http://${databaseHost}:5432/sql`;
 	neonConfig.poolQueryViaFetch = true;
 }

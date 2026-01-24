@@ -20,12 +20,14 @@ This project is a modern web application starter kit featuring:
 ## Setup
 
 1. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 2. **Environment Variables**:
    Create a `.env` file with the following:
+
    ```env
    DATABASE_URL=postgres://...
    BETTER_AUTH_SECRET=...
@@ -37,6 +39,7 @@ This project is a modern web application starter kit featuring:
    ```
 
 3. **Database Migration**:
+
    ```bash
    npx drizzle-kit push
    ```

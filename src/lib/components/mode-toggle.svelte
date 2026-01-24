@@ -25,7 +25,7 @@
 		if (browser) {
 			const theme = localStorage.getItem('theme');
 			const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-			
+
 			if (theme === 'dark' || (!theme && prefersDark)) {
 				isDark = true;
 				document.documentElement.classList.add('dark');
@@ -37,7 +37,12 @@
 	});
 </script>
 
-<Button variant="ghost" size="icon" onclick={toggleTheme} class="rounded-full transition-transform hover:scale-110 active:scale-95">
+<Button
+	variant="ghost"
+	size="icon"
+	onclick={toggleTheme}
+	class="rounded-full transition-transform hover:scale-110 active:scale-95"
+>
 	{#if isDark}
 		<Sun class="size-5 transition-all hover:text-yellow-400" />
 		<span class="sr-only">Switch to light mode</span>
