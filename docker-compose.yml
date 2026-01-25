@@ -9,3 +9,7 @@ services:
       BRANCH_ID: ${BRANCH_ID}
       PARENT_BRANCH_ID: ${PARENT_BRANCH_ID}
       DRIVER: serverless
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'

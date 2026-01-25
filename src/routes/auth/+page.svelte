@@ -7,10 +7,13 @@
 	import { Label } from '$lib/components/ui/label';
 	import {
 		LoginSchema,
+		MagicLinkSchema,
 		RegisterSchema,
 		type LoginInput,
+		type MagicLinkInput,
 		type RegisterInput
 	} from '$lib/validation';
+	import { APIError } from 'better-auth/api';
 	import * as v from 'valibot';
 
 	let isRegister = $state(false);
@@ -20,10 +23,24 @@
 	let email = $state('');
 	let password = $state('');
 	let name = $state('');
+	let magicLinkSent = $state(false);
+
+	function handleAuthError(err: unknown) {
+		if (err instanceof APIError) {
+			error = err.message;
+			return;
+		}
+		if (err instanceof Error) {
+			error = err.message;
+			return;
+		}
+		error = 'An unknown error occurred';
+	}
 
 	async function handleEmailAuth() {
 		error = null;
 		loading = true;
+		magicLinkSent = false;
 
 		try {
 			if (isRegister) {
@@ -57,11 +74,7 @@
 				});
 			}
 		} catch (e: unknown) {
-			if (e instanceof Error) {
-				error = e.message;
-			} else {
-				error = 'An unknown error occurred';
-			}
+			handleAuthError(e);
 		} finally {
 			loading = false;
 		}
@@ -77,6 +90,7 @@
 	async function handlePasskey() {
 		try {
 			await authClient.signIn.passkey({
+				autoFill: true,
 				fetchOptions: {
 					onSuccess: () => {
 						window.location.href = '/dashboard';
@@ -84,11 +98,27 @@
 				}
 			});
 		} catch (e: unknown) {
-			if (e instanceof Error) {
-				error = e.message;
-			} else {
-				error = 'An unknown error occurred';
-			}
+			handleAuthError(e);
+		}
+	}
+
+	async function handleMagicLink() {
+		error = null;
+		magicLinkSent = false;
+		const input: MagicLinkInput = { email };
+		const result = v.safeParse(MagicLinkSchema, input);
+		if (!result.success) {
+			error = result.issues[0].message;
+			return;
+		}
+		try {
+			await authClient.signIn.magicLink({
+				email
+			});
+			magicLinkSent = true;
+			window.location.href = `/auth/verify?email=${encodeURIComponent(email)}`;
+		} catch (e: unknown) {
+			handleAuthError(e);
 		}
 	}
 </script>
@@ -166,7 +196,7 @@
 								<p class="text-destructive text-sm">{error}</p>
 							{/if}
 							<Button disabled={loading} onclick={handleEmailAuth}>
-								{loading ? 'Loading...' : isRegister ? 'Sign In with Email' : 'Sign In with Email'}
+								{loading ? 'Loading...' : isRegister ? 'Create account' : 'Sign In with Email'}
 							</Button>
 						</div>
 
@@ -190,6 +220,12 @@
 						<Button variant="outline" class="w-full" onclick={handlePasskey} disabled={loading}>
 							Passkey
 						</Button>
+						<Button variant="outline" class="w-full" onclick={handleMagicLink} disabled={loading}>
+							Send magic link
+						</Button>
+						{#if magicLinkSent}
+							<p class="text-muted-foreground text-sm">Magic link sent. Check your inbox.</p>
+						{/if}
 					</div>
 				</div>
 

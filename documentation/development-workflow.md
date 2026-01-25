@@ -1,3 +1,18 @@
+## 4. Local Services (Docker)
+
+Start Neon Local and Redis with Docker:
+
+```bash
+docker compose up -d
+```
+
+Set your `.env` to point to local services:
+
+```env
+DATABASE_URL=postgresql://neon:npg@localhost:5432/neondb?sslmode=no-verify
+REDIS_URL=redis://localhost:6379
+```
+
 ## 5. Authentication Configuration (Local)
 
 To fully test authentication locally (including OAuth and Passkeys), configure your providers with the following URLs.

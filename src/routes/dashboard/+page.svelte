@@ -4,13 +4,51 @@
 	import ModeToggle from '$lib/components/mode-toggle.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import * as Select from '$lib/components/ui/select';
+	import { OrganizationSchema, OtpSchema, TwoFactorPasswordSchema } from '$lib/validation';
+	import { APIError } from 'better-auth/api';
 	import { Calendar, Clock, History, LogOut, Play, Square } from 'lucide-svelte';
 	import { onDestroy } from 'svelte';
+	import * as v from 'valibot';
+	import Members from './Members.svelte';
 
 	let { data } = $props();
 
 	let session = $state<typeof data.session | null>(null);
 	let user = $state<typeof data.user | null>(null);
+
+	const organizations = authClient.useListOrganizations();
+	const activeOrganization = authClient.useActiveOrganization();
+
+	let orgName = $state('');
+	let orgSlug = $state('');
+	let orgSelection = $state<string | null>(null);
+	let orgError = $state<string | null>(null);
+	let orgSuccess = $state<string | null>(null);
+	let orgLoading = $state(false);
+	let autoSetDone = $state(false);
+	let activeOrgId = $derived($activeOrganization.data?.id ?? null);
+	let securityError = $state<string | null>(null);
+	let securitySuccess = $state<string | null>(null);
+	let passkeyError = $state<string | null>(null);
+	let passkeySuccess = $state<string | null>(null);
+	let passkeyLoading = $state(false);
+	let passkeyName = $state('');
+	let passkeyAttachment = $state<'platform' | 'cross-platform'>('platform');
+	let passkeys = $state<{ id: string; name?: string | null; createdAt?: string | Date | null }[]>(
+		[]
+	);
+	let passkeyLoaded = $state(false);
+	let twoFactorPassword = $state('');
+	let twoFactorDisablePassword = $state('');
+	let twoFactorCode = $state('');
+	let twoFactorUri = $state<string | null>(null);
+	let twoFactorBackupCodes = $state<string[]>([]);
+	let twoFactorLoading = $state(false);
+	let twoFactorVerifyLoading = $state(false);
+	let twoFactorDisableLoading = $state(false);
 
 	// Mock State
 	let isClockedIn = $state(false);
@@ -29,6 +67,28 @@
 	$effect(() => {
 		session = data.session;
 		user = data.user;
+	});
+
+	$effect(() => {
+		if (!session || passkeyLoaded) return;
+		passkeyLoaded = true;
+		void fetchPasskeys();
+	});
+
+	$effect(() => {
+		if ($activeOrganization.data?.id) {
+			orgSelection = $activeOrganization.data.id;
+		}
+	});
+
+	$effect(() => {
+		if (autoSetDone) return;
+		if ($activeOrganization.isPending || $organizations.isPending) return;
+		const list = $organizations.data ?? [];
+		if (!$activeOrganization.data && list.length === 1) {
+			autoSetDone = true;
+			void handleSetActive(list[0].id);
+		}
 	});
 
 	onDestroy(() => {
@@ -88,6 +148,212 @@
 			}
 		});
 	}
+
+	async function handleSetActive(organizationId: string) {
+		if (!organizationId || organizationId === orgSelection) return;
+		orgError = null;
+		orgSuccess = null;
+		const { error: apiError } = await authClient.organization.setActive({
+			organizationId
+		});
+		if (apiError) {
+			orgError = apiError.message ?? 'An error occurred';
+			return;
+		}
+		orgSuccess = 'Active organization updated';
+	}
+
+	async function handleCreateOrganization() {
+		orgError = null;
+		orgSuccess = null;
+		orgLoading = true;
+
+		const input = { name: orgName, slug: orgSlug };
+		const result = v.safeParse(OrganizationSchema, input);
+		if (!result.success) {
+			orgError = result.issues[0].message;
+			orgLoading = false;
+			return;
+		}
+
+		const { data: org, error: apiError } = await authClient.organization.create({
+			name: orgName,
+			slug: orgSlug
+		});
+
+		if (apiError) {
+			orgError = apiError.message ?? 'An error occurred';
+			orgLoading = false;
+			return;
+		}
+
+		orgName = '';
+		orgSlug = '';
+		orgLoading = false;
+		orgSuccess = 'Organization created';
+		if (org?.id) {
+			await handleSetActive(org.id);
+		}
+	}
+
+	function handleAuthError(err: unknown, target: 'security' | 'passkey') {
+		const message =
+			err instanceof APIError
+				? err.message
+				: err instanceof Error
+					? err.message
+					: 'An error occurred';
+		if (target === 'passkey') {
+			passkeyError = message;
+			return;
+		}
+		securityError = message;
+	}
+
+	async function fetchPasskeys() {
+		passkeyError = null;
+		const { data, error: apiError } = await authClient.passkey.listUserPasskeys();
+		if (apiError) {
+			passkeyError = apiError.message ?? 'An error occurred';
+			return;
+		}
+		if (data && Array.isArray(data)) {
+			passkeys = data as unknown as typeof passkeys;
+			return;
+		}
+		if (data && typeof data === 'object' && 'passkeys' in data) {
+			passkeys = ((data as { passkeys?: unknown }).passkeys ?? []) as typeof passkeys;
+		}
+	}
+
+	async function handleAddPasskey() {
+		passkeyError = null;
+		passkeySuccess = null;
+		passkeyLoading = true;
+		try {
+			const { error: apiError } = await authClient.passkey.addPasskey({
+				name: passkeyName || undefined,
+				authenticatorAttachment: passkeyAttachment
+			});
+			if (apiError) {
+				passkeyError = apiError.message ?? 'An error occurred';
+				return;
+			}
+			passkeySuccess = 'Passkey added.';
+			passkeyName = '';
+			await fetchPasskeys();
+		} catch (e: unknown) {
+			handleAuthError(e, 'passkey');
+		} finally {
+			passkeyLoading = false;
+		}
+	}
+
+	async function handleDeletePasskey(passkeyId: string) {
+		passkeyError = null;
+		passkeySuccess = null;
+		try {
+			const { error: apiError } = await authClient.passkey.deletePasskey({ id: passkeyId });
+			if (apiError) {
+				passkeyError = apiError.message ?? 'An error occurred';
+				return;
+			}
+			passkeySuccess = 'Passkey removed.';
+			await fetchPasskeys();
+		} catch (e: unknown) {
+			handleAuthError(e, 'passkey');
+		}
+	}
+
+	async function handleEnableTwoFactor() {
+		securityError = null;
+		securitySuccess = null;
+		const result = v.safeParse(TwoFactorPasswordSchema, { password: twoFactorPassword });
+		if (!result.success) {
+			securityError = result.issues[0].message;
+			return;
+		}
+		twoFactorLoading = true;
+		try {
+			const { data: twoFactorData, error: apiError } = await authClient.twoFactor.enable({
+				password: twoFactorPassword
+			});
+			if (apiError) {
+				securityError = apiError.message ?? 'An error occurred';
+				return;
+			}
+			twoFactorUri = twoFactorData?.totpURI ?? null;
+			twoFactorBackupCodes = (twoFactorData?.backupCodes ?? []) as string[];
+			securitySuccess = '2FA enabled. Verify your code to finish setup.';
+		} catch (e: unknown) {
+			handleAuthError(e, 'security');
+		} finally {
+			twoFactorLoading = false;
+		}
+	}
+
+	async function handleVerifyTwoFactor() {
+		securityError = null;
+		securitySuccess = null;
+		const result = v.safeParse(OtpSchema, { code: twoFactorCode });
+		if (!result.success) {
+			securityError = result.issues[0].message;
+			return;
+		}
+		twoFactorVerifyLoading = true;
+		try {
+			const { error: apiError } = await authClient.twoFactor.verifyTotp({
+				code: twoFactorCode,
+				trustDevice: true
+			});
+			if (apiError) {
+				securityError = apiError.message ?? 'An error occurred';
+				return;
+			}
+			securitySuccess = 'Two-factor verification complete.';
+			twoFactorCode = '';
+		} catch (e: unknown) {
+			handleAuthError(e, 'security');
+		} finally {
+			twoFactorVerifyLoading = false;
+		}
+	}
+
+	async function handleDisableTwoFactor() {
+		securityError = null;
+		securitySuccess = null;
+		const result = v.safeParse(TwoFactorPasswordSchema, { password: twoFactorDisablePassword });
+		if (!result.success) {
+			securityError = result.issues[0].message;
+			return;
+		}
+		twoFactorDisableLoading = true;
+		try {
+			const { error: apiError } = await authClient.twoFactor.disable({
+				password: twoFactorDisablePassword
+			});
+			if (apiError) {
+				securityError = apiError.message ?? 'An error occurred';
+				return;
+			}
+			securitySuccess = 'Two-factor authentication disabled.';
+			twoFactorPassword = '';
+			twoFactorDisablePassword = '';
+			twoFactorUri = null;
+			twoFactorBackupCodes = [];
+		} catch (e: unknown) {
+			handleAuthError(e, 'security');
+		} finally {
+			twoFactorDisableLoading = false;
+		}
+	}
+
+	function formatPasskeyDate(value?: string | Date | null) {
+		if (!value) return '—';
+		const date = value instanceof Date ? value : new Date(value);
+		if (Number.isNaN(date.getTime())) return '—';
+		return date.toLocaleDateString();
+	}
 </script>
 
 <GeometricBackgroundSubtle />
@@ -117,6 +383,72 @@
 			<Button href="/auth" class="mt-4">Go to Login</Button>
 		</div>
 	{:else}
+		<Card.Root class="mb-8">
+			<Card.Header>
+				<Card.Title>Organization</Card.Title>
+				<Card.Description>Select or create an organization.</Card.Description>
+			</Card.Header>
+			<Card.Content>
+				<div class="grid gap-6 lg:grid-cols-2">
+					<div class="space-y-4">
+						<div class="space-y-2">
+							<Label for="active-org">Active organization</Label>
+							<Select.Root
+								type="single"
+								value={orgSelection ?? ''}
+								onValueChange={(value) => handleSetActive(value)}
+							>
+								<Select.Trigger id="active-org">
+									{#if $activeOrganization.isPending}
+										Loading organizations...
+									{:else if $activeOrganization.data}
+										{$activeOrganization.data.name}
+									{:else}
+										Select an organization
+									{/if}
+								</Select.Trigger>
+								<Select.Content>
+									{#each $organizations.data ?? [] as organization (organization.id)}
+										<Select.Item value={organization.id}>
+											{organization.name}
+										</Select.Item>
+									{/each}
+								</Select.Content>
+							</Select.Root>
+						</div>
+
+						{#if orgError}
+							<div class="bg-destructive/15 text-destructive rounded-md p-3 text-sm">
+								{orgError}
+							</div>
+						{/if}
+
+						{#if orgSuccess}
+							<div class="rounded-md bg-green-500/15 p-3 text-sm text-green-600">
+								{orgSuccess}
+							</div>
+						{/if}
+					</div>
+
+					<div class="space-y-4">
+						<div class="grid gap-4 sm:grid-cols-2">
+							<div class="space-y-2">
+								<Label for="org-name">Organization name</Label>
+								<Input id="org-name" bind:value={orgName} placeholder="Acme Inc" />
+							</div>
+							<div class="space-y-2">
+								<Label for="org-slug">Slug</Label>
+								<Input id="org-slug" bind:value={orgSlug} placeholder="acme" />
+							</div>
+						</div>
+						<Button class="h-11 w-full" onclick={handleCreateOrganization} disabled={orgLoading}>
+							{orgLoading ? 'Creating...' : 'Create organization'}
+						</Button>
+					</div>
+				</div>
+			</Card.Content>
+		</Card.Root>
+
 		<div class="grid gap-8 lg:grid-cols-3">
 			<!-- Main Clock In/Out Section -->
 			<div class="space-y-8 lg:col-span-2">
@@ -247,6 +579,170 @@
 					</Card.Footer>
 				</Card.Root>
 			</div>
+		</div>
+
+		<div class="mt-10">
+			{#if activeOrgId}
+				<Members {activeOrgId} />
+			{:else}
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>Members</Card.Title>
+						<Card.Description>Select or create an organization to manage members.</Card.Description>
+					</Card.Header>
+					<Card.Content>
+						<p class="text-muted-foreground text-sm">No active organization selected.</p>
+					</Card.Content>
+				</Card.Root>
+			{/if}
+		</div>
+
+		<div class="mt-10 grid gap-8 lg:grid-cols-2">
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>Two-factor authentication</Card.Title>
+					<Card.Description>Secure your account with an authenticator app.</Card.Description>
+				</Card.Header>
+				<Card.Content class="space-y-6">
+					<div class="space-y-3">
+						<Label for="twofactor-password">Password</Label>
+						<Input
+							id="twofactor-password"
+							type="password"
+							autocomplete="current-password"
+							bind:value={twoFactorPassword}
+						/>
+						<Button onclick={handleEnableTwoFactor} disabled={twoFactorLoading}>
+							{twoFactorLoading ? 'Enabling...' : 'Enable 2FA'}
+						</Button>
+					</div>
+
+					{#if twoFactorUri}
+						<div class="space-y-3">
+							<div class="bg-muted/40 rounded-xl border p-3 text-sm break-words">
+								{twoFactorUri}
+							</div>
+							<div class="space-y-2">
+								<Label for="twofactor-code">Verification code</Label>
+								<Input
+									id="twofactor-code"
+									type="text"
+									inputmode="numeric"
+									autocomplete="one-time-code"
+									bind:value={twoFactorCode}
+								/>
+								<Button onclick={handleVerifyTwoFactor} disabled={twoFactorVerifyLoading}>
+									{twoFactorVerifyLoading ? 'Verifying...' : 'Verify code'}
+								</Button>
+							</div>
+							{#if twoFactorBackupCodes.length > 0}
+								<div class="space-y-2">
+									<p class="text-muted-foreground text-sm">Backup codes</p>
+									<div class="grid gap-2 sm:grid-cols-2">
+										{#each twoFactorBackupCodes as codeItem (codeItem)}
+											<div class="bg-muted/40 rounded-md px-3 py-2 text-sm">
+												{codeItem}
+											</div>
+										{/each}
+									</div>
+								</div>
+							{/if}
+						</div>
+					{/if}
+
+					<div class="space-y-3">
+						<Label for="twofactor-disable-password">Disable with password</Label>
+						<Input
+							id="twofactor-disable-password"
+							type="password"
+							autocomplete="current-password"
+							bind:value={twoFactorDisablePassword}
+						/>
+						<Button
+							variant="outline"
+							onclick={handleDisableTwoFactor}
+							disabled={twoFactorDisableLoading}
+						>
+							{twoFactorDisableLoading ? 'Disabling...' : 'Disable 2FA'}
+						</Button>
+					</div>
+
+					{#if securityError}
+						<div class="bg-destructive/15 text-destructive rounded-md p-3 text-sm">
+							{securityError}
+						</div>
+					{/if}
+					{#if securitySuccess}
+						<div class="rounded-md bg-green-500/15 p-3 text-sm text-green-600">
+							{securitySuccess}
+						</div>
+					{/if}
+				</Card.Content>
+			</Card.Root>
+
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>Passkeys</Card.Title>
+					<Card.Description>Register and manage passkeys for passwordless login.</Card.Description>
+				</Card.Header>
+				<Card.Content class="space-y-6">
+					<div class="grid gap-4 sm:grid-cols-2">
+						<div class="space-y-2">
+							<Label for="passkey-name">Name</Label>
+							<Input id="passkey-name" bind:value={passkeyName} placeholder="My laptop" />
+						</div>
+						<div class="space-y-2">
+							<Label for="passkey-attachment">Attachment</Label>
+							<Select.Root type="single" bind:value={passkeyAttachment}>
+								<Select.Trigger id="passkey-attachment">
+									{passkeyAttachment === 'platform' ? 'Platform' : 'Cross-platform'}
+								</Select.Trigger>
+								<Select.Content>
+									<Select.Item value="platform">Platform</Select.Item>
+									<Select.Item value="cross-platform">Cross-platform</Select.Item>
+								</Select.Content>
+							</Select.Root>
+						</div>
+					</div>
+					<Button onclick={handleAddPasskey} disabled={passkeyLoading}>
+						{passkeyLoading ? 'Adding...' : 'Add passkey'}
+					</Button>
+
+					{#if passkeyError}
+						<div class="bg-destructive/15 text-destructive rounded-md p-3 text-sm">
+							{passkeyError}
+						</div>
+					{/if}
+					{#if passkeySuccess}
+						<div class="rounded-md bg-green-500/15 p-3 text-sm text-green-600">
+							{passkeySuccess}
+						</div>
+					{/if}
+
+					<div class="space-y-2">
+						{#each passkeys as passkey (passkey.id)}
+							<div class="bg-secondary/20 flex items-center justify-between rounded-md p-3">
+								<div class="flex flex-col">
+									<span class="font-medium">{passkey.name || 'Passkey'}</span>
+									<span class="text-muted-foreground text-xs">
+										Added {formatPasskeyDate(passkey.createdAt)}
+									</span>
+								</div>
+								<Button
+									variant="destructive"
+									size="sm"
+									onclick={() => handleDeletePasskey(passkey.id)}
+								>
+									Remove
+								</Button>
+							</div>
+						{/each}
+						{#if passkeys.length === 0}
+							<p class="text-muted-foreground text-sm">No passkeys registered.</p>
+						{/if}
+					</div>
+				</Card.Content>
+			</Card.Root>
 		</div>
 	{/if}
 </div>
