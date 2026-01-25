@@ -7,8 +7,8 @@ Neon is a serverless PostgreSQL provider. Drizzle ORM is a TypeScript ORM that p
 ## Installation
 
 ```bash
-npm install drizzle-orm @neondatabase/serverless
-npm install -D drizzle-kit
+pnpm add drizzle-orm @neondatabase/serverless
+pnpm add -D drizzle-kit
 ```
 
 ## Connection Setup
@@ -58,6 +58,6 @@ export default defineConfig({
 
 Commands:
 
-- `npx drizzle-kit generate`: Generate migration files.
-- `npx drizzle-kit migrate`: Apply migrations to the database.
-- `npx drizzle-kit push`: Push changes directly (useful for rapid prototyping).
+- `pnpm drizzle-kit generate`: Generate migration files.
+- `pnpm drizzle-kit migrate`: Apply migrations to the database.
+- `pnpm drizzle-kit push`: Push changes directly (useful for rapid prototyping).

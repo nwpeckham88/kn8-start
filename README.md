@@ -22,7 +22,7 @@ This project is a modern web application starter kit featuring:
 1. **Install dependencies**:
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. **Environment Variables**:
@@ -41,12 +41,12 @@ This project is a modern web application starter kit featuring:
 3. **Database Migration**:
 
    ```bash
-   npx drizzle-kit push
+   pnpm drizzle-kit push
    ```
 
 4. **Run Development Server**:
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 ## Architecture

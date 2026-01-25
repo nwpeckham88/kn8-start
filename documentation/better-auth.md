@@ -7,7 +7,7 @@ BetterAuth is a flexible authentication library. We are using the **Organization
 ## Installation
 
 ```bash
-npm install better-auth
+pnpm add better-auth
 ```
 
 ## Server Setup
@@ -50,7 +50,7 @@ BetterAuth can generate the necessary Drizzle schema for you.
 Run:
 
 ```bash
-npx @better-auth/cli generate
+pnpm dlx @better-auth/cli generate
 ```
 
 This will inspect your config and plugins (like `organization`) and generate the required tables in your database or schema file.

@@ -7,7 +7,7 @@ Valibot is a schema library for data validation. It is designed to be small, tre
 ## Installation
 
 ```bash
-npm install valibot
+pnpm add valibot
 ```
 
 ## Schema Definition
@@ -28,7 +28,7 @@ type LoginInput = v.InferInput<typeof LoginSchema>;
 To use Valibot with SvelteKit forms, use `sveltekit-superforms` with the Valibot adapter.
 
 ```bash
-npm install sveltekit-superforms
+pnpm add sveltekit-superforms
 ```
 
 ```typescript

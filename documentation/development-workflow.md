@@ -26,8 +26,8 @@ Passkeys require a valid domain. `localhost` is supported by most browsers for t
 
 ## 6. Testing the Flow
 
-1.  Start the app: `npm run dev:vercel`
+1.  Start the app: `pnpm run dev:vercel`
 2.  Go to `http://localhost:5173/auth`
-3.  Sign Up with Email/Password -> Check DB (`npm run db:studio`)
+3.  Sign Up with Email/Password -> Check DB (`pnpm run db:studio`)
 4.  Sign Out
 5.  Sign In with GitHub -> Redirects to GitHub -> Back to Dashboard

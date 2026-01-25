@@ -9,8 +9,8 @@
 Use the CLI to add components as needed.
 
 ```bash
-npx shadcn-svelte@latest init
-npx shadcn-svelte@latest add button
+pnpm dlx shadcn-svelte@latest init
+pnpm dlx shadcn-svelte@latest add button
 ```
 
 ## Bits UI

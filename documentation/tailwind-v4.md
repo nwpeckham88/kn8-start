@@ -7,7 +7,7 @@ Tailwind CSS v4 is a major update focusing on performance and a CSS-first config
 ## Installation
 
 ```bash
-npm install tailwindcss @tailwindcss/vite
+pnpm add tailwindcss @tailwindcss/vite
 ```
 
 ## Vite Configuration
